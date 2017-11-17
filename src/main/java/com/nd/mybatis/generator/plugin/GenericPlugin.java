@@ -72,22 +72,22 @@ public class GenericPlugin extends PluginAdapter
      */
     private GeneratedJavaFile generateServiceJavaFile()
     {
-        String domainObjectName = introspectedTable.getFullyQualifiedTable().getDomainObjectName();
+        FullyQualifiedJavaType qualifiedRecordType = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
         
         FullyQualifiedJavaType qualifiedExampleClass = new FullyQualifiedJavaType(introspectedTable.getExampleType());
         
         FullyQualifiedJavaType qualifiedRootClass = new FullyQualifiedJavaType(GenericService.class.getSimpleName());
 
         qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleClass.getShortName()));
-        qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType(domainObjectName));
+        qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
 
-        String serviceName = servicePackage + "." + domainObjectName + "Service";
+        String serviceName = servicePackage + "." + qualifiedRecordType.getShortName() + "Service";
 
         Interface service = new Interface(new FullyQualifiedJavaType(serviceName));
 
         service.addImportedType(new FullyQualifiedJavaType(GenericService.class.getCanonicalName()));
         service.addImportedType(qualifiedExampleClass);
-        service.addImportedType(new FullyQualifiedJavaType(context.getJavaModelGeneratorConfiguration().getTargetPackage() + "." + domainObjectName));
+        service.addImportedType(qualifiedRecordType);
 
         service.setVisibility(JavaVisibility.PUBLIC);
         service.addSuperInterface(qualifiedRootClass);
@@ -102,24 +102,24 @@ public class GenericPlugin extends PluginAdapter
     {
         Boolean beanAware = Boolean.valueOf(properties.getProperty("beanAware"));
         
-        String domainObjectName = introspectedTable.getFullyQualifiedTable().getDomainObjectName();
+        FullyQualifiedJavaType qualifiedRecordType = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
         
         FullyQualifiedJavaType qualifiedExampleClass = new FullyQualifiedJavaType(introspectedTable.getExampleType());
         
         FullyQualifiedJavaType qualifiedImplRootClass = new FullyQualifiedJavaType(GenericServiceImpl.class.getSimpleName());
 
         qualifiedImplRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleClass.getShortName()));
-        qualifiedImplRootClass.addTypeArgument(new FullyQualifiedJavaType(domainObjectName));
+        qualifiedImplRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
 
-        TopLevelClass serviceImpl = new TopLevelClass(new FullyQualifiedJavaType(serviceImplPackage + "." + domainObjectName + "ServiceImpl"));
+        TopLevelClass serviceImpl = new TopLevelClass(new FullyQualifiedJavaType(serviceImplPackage + "." + qualifiedRecordType.getShortName() + "ServiceImpl"));
 
         serviceImpl.addImportedType(new FullyQualifiedJavaType(GenericServiceImpl.class.getCanonicalName()));
-        serviceImpl.addImportedType(new FullyQualifiedJavaType(servicePackage + "." + domainObjectName + "Service"));
+        serviceImpl.addImportedType(new FullyQualifiedJavaType(servicePackage + "." + qualifiedRecordType.getShortName() + "Service"));
         serviceImpl.addImportedType(qualifiedExampleClass);
-        serviceImpl.addImportedType(new FullyQualifiedJavaType(context.getJavaModelGeneratorConfiguration().getTargetPackage() + "." + domainObjectName));
+        serviceImpl.addImportedType(qualifiedRecordType);
 
         serviceImpl.setVisibility(JavaVisibility.PUBLIC);
-        serviceImpl.addSuperInterface(new FullyQualifiedJavaType(domainObjectName + "Service"));
+        serviceImpl.addSuperInterface(new FullyQualifiedJavaType(qualifiedRecordType.getShortName() + "Service"));
         serviceImpl.setSuperClass(qualifiedImplRootClass);
         
         if(beanAware)
@@ -147,18 +147,18 @@ public class GenericPlugin extends PluginAdapter
     @Override
     public boolean clientGenerated(Interface mapper, TopLevelClass topLevelClass, IntrospectedTable introspectedTable)
     {
-        String domainObjectName = introspectedTable.getFullyQualifiedTable().getDomainObjectName();
+        FullyQualifiedJavaType qualifiedRecordType = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
         
         FullyQualifiedJavaType qualifiedExampleClass = new FullyQualifiedJavaType(introspectedTable.getExampleType());
         
         FullyQualifiedJavaType qualifiedRootClass = new FullyQualifiedJavaType(GenericMapper.class.getSimpleName());
 
         qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleClass.getShortName()));
-        qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType(domainObjectName));
+        qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
 
         mapper.addImportedType(new FullyQualifiedJavaType(GenericMapper.class.getCanonicalName()));
         mapper.addImportedType(qualifiedExampleClass);
-        mapper.addImportedType(new FullyQualifiedJavaType(context.getJavaModelGeneratorConfiguration().getTargetPackage() + "." + domainObjectName));
+        mapper.addImportedType(qualifiedRecordType);
 
         mapper.setVisibility(JavaVisibility.PUBLIC);
         mapper.addSuperInterface(qualifiedRootClass);
@@ -197,7 +197,7 @@ public class GenericPlugin extends PluginAdapter
         topLevelClass.addImportedType(qualifiedCriteriaClass);
 
         topLevelClass.setSuperClass(qualifiedRootClass);
-
+        
         //
         topLevelClass.getFields().clear();
 
