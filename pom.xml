@@ -1,25 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <name>mybatis_generator_plugin</name>
-  <parent>
-    <groupId>com.nd.sdp</groupId>
-    <artifactId>sdp-java-parent</artifactId>
-    <version>0.2.0</version>
-  </parent>
-  <groupId>com.nd.component.java</groupId>
-  <version>1.0-SNAPSHOT</version>
-  <artifactId>mybatis_generator_plugin</artifactId>
-  <distributionManagement>
-    <repository>
-      <id>java-releases</id>
-      <name>ND java releases nexus mirror.</name>
-      <url>http://nexus.sdp.nd/nexus/content/repositories/java/</url>
-    </repository>
-    <snapshotRepository>
-      <id>java-snapshots</id>
-      <name>ND java snapshots nexus mirror.</name>
-      <url>http://nexus.sdp.nd/nexus/content/repositories/java_snapshot/</url>
-    </snapshotRepository>
-  </distributionManagement>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.nd.component.java</groupId>
+    <artifactId>mybatis-generator-plugin</artifactId>
+    <version>0.1.0${project.version.postfix}</version>
+
+    <name>mybatis-generator-plugin</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.version.postfix>-SNAPSHOT</project.version.postfix>
+        <java.version>1.7</java.version>
+    </properties>
+
+    <repositories>
+    </repositories>
+    <reporting>
+        <plugins></plugins>
+    </reporting>
+
+    <build>
+        <finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.2</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <attach>true</attach>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.0.2</version>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <profiles>
+        <profile>
+            <id>development</id>
+            <properties>
+                <env>development</env>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <env>test</env>
+            </properties>
+        </profile>
+        <profile>
+            <id>product</id>
+            <properties>
+                <env>product</env>
+                <project.version.postfix>.RELEASE</project.version.postfix>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.mybatis.generator</groupId>
+            <artifactId>mybatis-generator-core</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nd.component.java</groupId>
+            <artifactId>mybatis-generic</artifactId>
+            <version>0.1.0.RELEASE</version>
+        </dependency>
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>java-releases</id>
+            <name>ND java releases nexus mirror.</name>
+            <url>http://nexus.sdp.nd/nexus/content/repositories/java/</url>
+        </repository>
+        <snapshotRepository>
+            <id>java-snapshots</id>
+            <name>ND java snapshots nexus mirror.</name>
+            <url>http://nexus.sdp.nd/nexus/content/repositories/java_snapshot/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
