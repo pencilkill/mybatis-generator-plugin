@@ -19,7 +19,6 @@ Maven dependency :
 		<version>${mybatis-generic-version}</version>
 	</dependency>
 
-***
 Mybatis generator config :
 
 	<plugin type="com.nd.mybatis.generator.plugin.ExamplePageablePlugin">
