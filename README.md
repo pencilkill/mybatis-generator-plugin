@@ -64,6 +64,5 @@ InsertMultipleSelective
 Mybatis generator config :
 
 	<plugin type="com.nd.mybatis.generator.plugin.InsertMultipleSelectivePlugin" />
-
-
-[Mybatis Generator Plugins](http://www.mybatis.org/generator/reference/pluggingIn.html)
+	
+Reference [Mybatis Generator Plugins](http://www.mybatis.org/generator/reference/pluggingIn.html)
