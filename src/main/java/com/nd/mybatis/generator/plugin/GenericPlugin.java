@@ -32,10 +32,6 @@ import com.nd.mybatis.generic.service.GenericServiceImpl;
  */
 public class GenericPlugin extends PluginAdapter
 {
-    private String servicePackage;
-
-    private String serviceImplPackage;
-
     private FullyQualifiedJavaType qualifiedRecordType;
 
     private FullyQualifiedJavaType qualifiedCriteriaType;
@@ -43,6 +39,10 @@ public class GenericPlugin extends PluginAdapter
     private FullyQualifiedJavaType qualifiedExampleType;
 
     private FullyQualifiedJavaType qualifiedMapperType;
+
+    private FullyQualifiedJavaType qualifiedServiceType;
+
+    private FullyQualifiedJavaType qualifiedServiceImplType;
 
 
     /**
@@ -53,18 +53,14 @@ public class GenericPlugin extends PluginAdapter
     @Override
     public boolean validate(List<String> warnings)
     {
-        servicePackage = properties.getProperty("servicePackage");
-
-        if (!StringUtility.stringHasValue(servicePackage))
+        if (!StringUtility.stringHasValue(properties.getProperty("servicePackage")))
         {
             warnings.add("ServicePackage must not be empty");
 
             return false;
         }
 
-        serviceImplPackage = properties.getProperty("serviceImplPackage");
-
-        if (!StringUtility.stringHasValue(serviceImplPackage))
+        if (!StringUtility.stringHasValue(properties.getProperty("serviceImplPackage")))
         {
             warnings.add("ServiceImplPackage must not be empty");
 
@@ -84,7 +80,7 @@ public class GenericPlugin extends PluginAdapter
         qualifiedRootServiceType.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleType.getShortName()));
         qualifiedRootServiceType.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
 
-        Interface service = new Interface(new FullyQualifiedJavaType(servicePackage + "." + qualifiedRecordType.getShortName() + "Service"));
+        Interface service = new Interface(qualifiedServiceType);
 
         service.addImportedType(new FullyQualifiedJavaType(GenericService.class.getCanonicalName()));
         service.addImportedType(qualifiedExampleType);
@@ -106,15 +102,15 @@ public class GenericPlugin extends PluginAdapter
         qualifiedRootImplType.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleType.getShortName()));
         qualifiedRootImplType.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
 
-        TopLevelClass serviceImpl = new TopLevelClass(new FullyQualifiedJavaType(serviceImplPackage + "." + qualifiedRecordType.getShortName() + "ServiceImpl"));
+        TopLevelClass serviceImpl = new TopLevelClass(qualifiedServiceImplType);
 
         serviceImpl.addImportedType(new FullyQualifiedJavaType(GenericServiceImpl.class.getCanonicalName()));
-        serviceImpl.addImportedType(new FullyQualifiedJavaType(servicePackage + "." + qualifiedRecordType.getShortName() + "Service"));
+        serviceImpl.addImportedType(qualifiedServiceType);
         serviceImpl.addImportedType(qualifiedExampleType);
         serviceImpl.addImportedType(qualifiedRecordType);
 
         serviceImpl.setVisibility(JavaVisibility.PUBLIC);
-        serviceImpl.addSuperInterface(new FullyQualifiedJavaType(qualifiedRecordType.getShortName() + "Service"));
+        serviceImpl.addSuperInterface(new FullyQualifiedJavaType(qualifiedServiceType.getShortName()));
         serviceImpl.setSuperClass(qualifiedRootImplType);
         
         if(Boolean.valueOf(properties.getProperty("beanAware")))
@@ -231,6 +227,10 @@ public class GenericPlugin extends PluginAdapter
         this.qualifiedExampleType = new FullyQualifiedJavaType(introspectedTable.getExampleType());
         
         this.qualifiedMapperType =  new FullyQualifiedJavaType(introspectedTable.getMyBatis3JavaMapperType());
+        
+        this.qualifiedServiceType = new FullyQualifiedJavaType(properties.getProperty("servicePackage") + "." + qualifiedRecordType.getShortName() + "Service");
+        
+        this.qualifiedServiceImplType = new FullyQualifiedJavaType(properties.getProperty("serviceImplPackage") + "." + qualifiedRecordType.getShortName() + "ServiceImpl");
         
     }
 
