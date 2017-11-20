@@ -36,7 +36,14 @@ public class GenericPlugin extends PluginAdapter
 
     private String serviceImplPackage;
 
-    private IntrospectedTable introspectedTable;
+    private FullyQualifiedJavaType qualifiedRecordType;
+
+    private FullyQualifiedJavaType qualifiedCriteriaType;
+    
+    private FullyQualifiedJavaType qualifiedExampleType;
+
+    private FullyQualifiedJavaType qualifiedMapperType;
+
 
     /**
      * @param warnings
@@ -72,25 +79,19 @@ public class GenericPlugin extends PluginAdapter
      */
     private GeneratedJavaFile generateServiceJavaFile()
     {
-        FullyQualifiedJavaType qualifiedRecordType = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
-        
-        FullyQualifiedJavaType qualifiedExampleClass = new FullyQualifiedJavaType(introspectedTable.getExampleType());
-        
-        FullyQualifiedJavaType qualifiedRootClass = new FullyQualifiedJavaType(GenericService.class.getSimpleName());
+        FullyQualifiedJavaType qualifiedRootServiceType = new FullyQualifiedJavaType(GenericService.class.getSimpleName());
 
-        qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleClass.getShortName()));
-        qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
+        qualifiedRootServiceType.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleType.getShortName()));
+        qualifiedRootServiceType.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
 
-        String serviceName = servicePackage + "." + qualifiedRecordType.getShortName() + "Service";
-
-        Interface service = new Interface(new FullyQualifiedJavaType(serviceName));
+        Interface service = new Interface(new FullyQualifiedJavaType(servicePackage + "." + qualifiedRecordType.getShortName() + "Service"));
 
         service.addImportedType(new FullyQualifiedJavaType(GenericService.class.getCanonicalName()));
-        service.addImportedType(qualifiedExampleClass);
+        service.addImportedType(qualifiedExampleType);
         service.addImportedType(qualifiedRecordType);
 
         service.setVisibility(JavaVisibility.PUBLIC);
-        service.addSuperInterface(qualifiedRootClass);
+        service.addSuperInterface(qualifiedRootServiceType);
         
         return new GeneratedJavaFile(service, context.getJavaModelGeneratorConfiguration().getTargetProject(), context.getProperty(PropertyRegistry.CONTEXT_JAVA_FILE_ENCODING), context.getJavaFormatter());
     }
@@ -100,29 +101,23 @@ public class GenericPlugin extends PluginAdapter
      */
     private GeneratedJavaFile generateServiceImplJavaFile()
     {
-        Boolean beanAware = Boolean.valueOf(properties.getProperty("beanAware"));
-        
-        FullyQualifiedJavaType qualifiedRecordType = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
-        
-        FullyQualifiedJavaType qualifiedExampleClass = new FullyQualifiedJavaType(introspectedTable.getExampleType());
-        
-        FullyQualifiedJavaType qualifiedImplRootClass = new FullyQualifiedJavaType(GenericServiceImpl.class.getSimpleName());
+        FullyQualifiedJavaType qualifiedRootImplType = new FullyQualifiedJavaType(GenericServiceImpl.class.getSimpleName());
 
-        qualifiedImplRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleClass.getShortName()));
-        qualifiedImplRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
+        qualifiedRootImplType.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleType.getShortName()));
+        qualifiedRootImplType.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
 
         TopLevelClass serviceImpl = new TopLevelClass(new FullyQualifiedJavaType(serviceImplPackage + "." + qualifiedRecordType.getShortName() + "ServiceImpl"));
 
         serviceImpl.addImportedType(new FullyQualifiedJavaType(GenericServiceImpl.class.getCanonicalName()));
         serviceImpl.addImportedType(new FullyQualifiedJavaType(servicePackage + "." + qualifiedRecordType.getShortName() + "Service"));
-        serviceImpl.addImportedType(qualifiedExampleClass);
+        serviceImpl.addImportedType(qualifiedExampleType);
         serviceImpl.addImportedType(qualifiedRecordType);
 
         serviceImpl.setVisibility(JavaVisibility.PUBLIC);
         serviceImpl.addSuperInterface(new FullyQualifiedJavaType(qualifiedRecordType.getShortName() + "Service"));
-        serviceImpl.setSuperClass(qualifiedImplRootClass);
+        serviceImpl.setSuperClass(qualifiedRootImplType);
         
-        if(beanAware)
+        if(Boolean.valueOf(properties.getProperty("beanAware")))
         {
             serviceImpl.addAnnotation("@Service");
             serviceImpl.addImportedType(new FullyQualifiedJavaType("org.springframework.stereotype.Service"));
@@ -132,13 +127,13 @@ public class GenericPlugin extends PluginAdapter
             
             method.addAnnotation("@Autowired");
             method.setVisibility(JavaVisibility.PRIVATE);
-            method.addParameter(new Parameter(new FullyQualifiedJavaType(new FullyQualifiedJavaType(introspectedTable.getMyBatis3JavaMapperType()).getShortName()), "mapper"));
+            method.addParameter(new Parameter(new FullyQualifiedJavaType(qualifiedMapperType.getShortName()), "mapper"));
             method.addBodyLine("super.setMapper(mapper);");
             
             serviceImpl.addMethod(method);
 
             serviceImpl.addImportedType(new FullyQualifiedJavaType("org.springframework.beans.factory.annotation.Autowired"));
-            serviceImpl.addImportedType(new FullyQualifiedJavaType(introspectedTable.getMyBatis3JavaMapperType()));
+            serviceImpl.addImportedType(qualifiedMapperType);
         }
 
         return new GeneratedJavaFile(serviceImpl, context.getJavaModelGeneratorConfiguration().getTargetProject(), context.getProperty(PropertyRegistry.CONTEXT_JAVA_FILE_ENCODING), context.getJavaFormatter());
@@ -147,21 +142,17 @@ public class GenericPlugin extends PluginAdapter
     @Override
     public boolean clientGenerated(Interface mapper, TopLevelClass topLevelClass, IntrospectedTable introspectedTable)
     {
-        FullyQualifiedJavaType qualifiedRecordType = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
-        
-        FullyQualifiedJavaType qualifiedExampleClass = new FullyQualifiedJavaType(introspectedTable.getExampleType());
-        
-        FullyQualifiedJavaType qualifiedRootClass = new FullyQualifiedJavaType(GenericMapper.class.getSimpleName());
+        FullyQualifiedJavaType qualifiedRootMapperType = new FullyQualifiedJavaType(GenericMapper.class.getSimpleName());
 
-        qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleClass.getShortName()));
-        qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
+        qualifiedRootMapperType.addTypeArgument(new FullyQualifiedJavaType(qualifiedExampleType.getShortName()));
+        qualifiedRootMapperType.addTypeArgument(new FullyQualifiedJavaType(qualifiedRecordType.getShortName()));
 
         mapper.addImportedType(new FullyQualifiedJavaType(GenericMapper.class.getCanonicalName()));
-        mapper.addImportedType(qualifiedExampleClass);
+        mapper.addImportedType(qualifiedExampleType);
         mapper.addImportedType(qualifiedRecordType);
 
         mapper.setVisibility(JavaVisibility.PUBLIC);
-        mapper.addSuperInterface(qualifiedRootClass);
+        mapper.addSuperInterface(qualifiedRootMapperType);
         
         for (Iterator<Method> iterator = mapper.getMethods().iterator(); iterator.hasNext();)
         {
@@ -187,16 +178,14 @@ public class GenericPlugin extends PluginAdapter
     @Override
     public boolean modelExampleClassGenerated(TopLevelClass topLevelClass, IntrospectedTable introspectedTable)
     {
-        FullyQualifiedJavaType qualifiedCriteriaClass = new FullyQualifiedJavaType(introspectedTable.getExampleType() + ".Criteria");
-        
-        FullyQualifiedJavaType qualifiedRootClass = new FullyQualifiedJavaType(GenericCriteria.class.getSimpleName());
+        FullyQualifiedJavaType qualifiedRootCriteriaType = new FullyQualifiedJavaType(GenericCriteria.class.getSimpleName());
 
-        qualifiedRootClass.addTypeArgument(new FullyQualifiedJavaType("Criteria"));
+        qualifiedRootCriteriaType.addTypeArgument(new FullyQualifiedJavaType(qualifiedCriteriaType.getShortName()));
 
         topLevelClass.addImportedType(new FullyQualifiedJavaType(GenericCriteria.class.getCanonicalName()));
-        topLevelClass.addImportedType(qualifiedCriteriaClass);
+        topLevelClass.addImportedType(qualifiedCriteriaType);
 
-        topLevelClass.setSuperClass(qualifiedRootClass);
+        topLevelClass.setSuperClass(qualifiedRootCriteriaType);
         
         //
         topLevelClass.getFields().clear();
@@ -235,7 +224,14 @@ public class GenericPlugin extends PluginAdapter
     @Override
     public void initialized(IntrospectedTable introspectedTable)
     {
-        this.introspectedTable = introspectedTable;
+        this.qualifiedRecordType = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
+        
+        this.qualifiedCriteriaType = new FullyQualifiedJavaType(introspectedTable.getExampleType() + ".Criteria");
+        
+        this.qualifiedExampleType = new FullyQualifiedJavaType(introspectedTable.getExampleType());
+        
+        this.qualifiedMapperType =  new FullyQualifiedJavaType(introspectedTable.getMyBatis3JavaMapperType());
+        
     }
 
     @Override
