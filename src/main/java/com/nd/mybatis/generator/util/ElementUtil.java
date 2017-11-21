@@ -25,7 +25,7 @@ import org.mybatis.generator.internal.util.JavaBeansUtil;
  * @author SongDeQiang <mail.song.de.qiang@gmail.com>
  *
  */
-public abstract class JavaElementUtil
+public abstract class ElementUtil
 {
     /**
      * @param topLevelClass

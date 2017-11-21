@@ -17,7 +17,7 @@ import org.mybatis.generator.codegen.mybatis3.xmlmapper.elements.AbstractXmlElem
 
 import com.nd.mybatis.generator.api.InsertMultipleSelectiveMethodGenerator;
 import com.nd.mybatis.generator.dom.InsertMultipleSelectiveElementGenerator;
-import com.nd.mybatis.generator.util.JavaElementUtil;
+import com.nd.mybatis.generator.util.ElementUtil;
 
 /**
  * @author SongDeQiang <mail.song.de.qiang@gmail.com>
@@ -53,7 +53,7 @@ public class InsertMultipleSelectivePlugin extends PluginAdapter
     @Override
     public boolean sqlMapDocumentGenerated(Document document, IntrospectedTable introspectedTable)
     {
-        int index = JavaElementUtil.xmlElementIndex(document, "insert", new Attribute("id", introspectedTable.getInsertSelectiveStatementId()));
+        int index = ElementUtil.xmlElementIndex(document, "insert", new Attribute("id", introspectedTable.getInsertSelectiveStatementId()));
         
         if(index >= 0)
         {

@@ -14,7 +14,7 @@ import org.mybatis.generator.api.dom.xml.Attribute;
 import org.mybatis.generator.api.dom.xml.TextElement;
 import org.mybatis.generator.api.dom.xml.XmlElement;
 
-import com.nd.mybatis.generator.util.JavaElementUtil;
+import com.nd.mybatis.generator.util.ElementUtil;
 
 /**
  * @author SongDeQiang <mail.song.de.qiang@gmail.com>
@@ -47,9 +47,9 @@ public class ExamplePageablePlugin extends PluginAdapter
     @Override
     public boolean modelExampleClassGenerated(TopLevelClass topLevelClass, IntrospectedTable introspectedTable)
     {
-        JavaElementUtil.newField(topLevelClass, new FullyQualifiedJavaType("java.lang.Integer"), limitStartName, true, true);
+        ElementUtil.newField(topLevelClass, new FullyQualifiedJavaType("java.lang.Integer"), limitStartName, true, true);
         
-        JavaElementUtil.newField(topLevelClass, new FullyQualifiedJavaType("java.lang.Integer"), limitEndName, true, true);
+        ElementUtil.newField(topLevelClass, new FullyQualifiedJavaType("java.lang.Integer"), limitEndName, true, true);
         
         return true;
     }

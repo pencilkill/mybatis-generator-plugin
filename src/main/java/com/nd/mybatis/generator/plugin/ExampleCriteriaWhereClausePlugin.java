@@ -16,7 +16,7 @@ import org.mybatis.generator.api.dom.xml.XmlElement;
 import org.mybatis.generator.codegen.mybatis3.xmlmapper.elements.AbstractXmlElementGenerator;
 
 import com.nd.mybatis.generator.dom.ExampleCriteraWhereClauseElementGenerator;
-import com.nd.mybatis.generator.util.JavaElementUtil;
+import com.nd.mybatis.generator.util.ElementUtil;
 
 /**
  * @author SongDeQiang <mail.song.de.qiang@gmail.com>
@@ -55,7 +55,7 @@ public class ExampleCriteriaWhereClausePlugin extends PluginAdapter
         {
             Element element = iterator.next();
 
-            if(JavaElementUtil.xmlElementMatcher(element, "sql", new Attribute("id", introspectedTable.getExampleWhereClauseId())))
+            if(ElementUtil.xmlElementMatcher(element, "sql", new Attribute("id", introspectedTable.getExampleWhereClauseId())))
             {
                 //
                 elementGenerator = new ExampleCriteraWhereClauseElementGenerator(clauseId, index);
@@ -66,7 +66,7 @@ public class ExampleCriteriaWhereClausePlugin extends PluginAdapter
                 b += 1;
             }
             
-            if(JavaElementUtil.xmlElementMatcher(element, "sql", new Attribute("id", introspectedTable.getMyBatis3UpdateByExampleWhereClauseId())))
+            if(ElementUtil.xmlElementMatcher(element, "sql", new Attribute("id", introspectedTable.getMyBatis3UpdateByExampleWhereClauseId())))
             {
                 document.getRootElement().getElements().set(index, generateExampleElement(true, introspectedTable));
 

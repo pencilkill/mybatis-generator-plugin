@@ -15,7 +15,7 @@ import org.mybatis.generator.api.dom.xml.Element;
 import org.mybatis.generator.api.dom.xml.TextElement;
 import org.mybatis.generator.api.dom.xml.XmlElement;
 
-import com.nd.mybatis.generator.util.JavaElementUtil;
+import com.nd.mybatis.generator.util.ElementUtil;
 
 /**
  * @author SongDeQiang <mail.song.de.qiang@gmail.com>
@@ -39,7 +39,7 @@ public class ExampleGroupByClausePlugin extends PluginAdapter
     @Override
     public boolean modelExampleClassGenerated(TopLevelClass topLevelClass, IntrospectedTable introspectedTable)
     {
-        JavaElementUtil.newField(topLevelClass, FullyQualifiedJavaType.getStringInstance(), GROUP_BY_CLAUSE_PROPERTY_NAME, true, true);
+        ElementUtil.newField(topLevelClass, FullyQualifiedJavaType.getStringInstance(), GROUP_BY_CLAUSE_PROPERTY_NAME, true, true);
         
         return true;
     }
