@@ -10,12 +10,14 @@ import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.PluginAdapter;
 import org.mybatis.generator.api.dom.java.Interface;
 import org.mybatis.generator.api.dom.java.TopLevelClass;
+import org.mybatis.generator.api.dom.xml.Attribute;
 import org.mybatis.generator.api.dom.xml.Document;
 import org.mybatis.generator.codegen.mybatis3.javamapper.elements.AbstractJavaMapperMethodGenerator;
 import org.mybatis.generator.codegen.mybatis3.xmlmapper.elements.AbstractXmlElementGenerator;
 
 import com.nd.mybatis.generator.api.InsertMultipleSelectiveMethodGenerator;
 import com.nd.mybatis.generator.dom.InsertMultipleSelectiveElementGenerator;
+import com.nd.mybatis.generator.util.JavaElementUtil;
 
 /**
  * @author SongDeQiang <mail.song.de.qiang@gmail.com>
@@ -51,11 +53,16 @@ public class InsertMultipleSelectivePlugin extends PluginAdapter
     @Override
     public boolean sqlMapDocumentGenerated(Document document, IntrospectedTable introspectedTable)
     {
-        AbstractXmlElementGenerator elementGenerator = new InsertMultipleSelectiveElementGenerator();
+        int index = JavaElementUtil.xmlElementIndex(document, "insert", new Attribute("id", introspectedTable.getInsertSelectiveStatementId()));
         
-        elementGenerator.setContext(context);
-        elementGenerator.setIntrospectedTable(introspectedTable);
-        elementGenerator.addElements(document.getRootElement());
+        if(index >= 0)
+        {
+            AbstractXmlElementGenerator elementGenerator = new InsertMultipleSelectiveElementGenerator(index + 1);
+            
+            elementGenerator.setContext(context);
+            elementGenerator.setIntrospectedTable(introspectedTable);
+            elementGenerator.addElements(document.getRootElement());
+        }
         
         return true;
     }

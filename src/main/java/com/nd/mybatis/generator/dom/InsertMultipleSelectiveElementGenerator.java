@@ -20,10 +20,13 @@ import com.nd.mybatis.generator.plugin.InsertMultipleSelectivePlugin;
  */
 public class InsertMultipleSelectiveElementGenerator extends AbstractXmlElementGenerator
 {
+    private int index;
 
-    public InsertMultipleSelectiveElementGenerator()
+    public InsertMultipleSelectiveElementGenerator(int index)
     {
         super();
+        
+        this.index = index;
     }
 
     @Override
@@ -140,7 +143,7 @@ public class InsertMultipleSelectiveElementGenerator extends AbstractXmlElementG
 
         if (context.getPlugins().sqlMapInsertSelectiveElementGenerated(answer, introspectedTable))
         {
-            parentElement.addElement(answer);
+            parentElement.addElement(index, answer);
         }
     }
 }
