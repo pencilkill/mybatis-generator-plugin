@@ -70,6 +70,5 @@ ExampleCriteriaWhereClause
 Mybatis generator config :
 
     <plugin type="com.nd.mybatis.generator.plugin.ExampleCriteriaWhereClausePlugin" />
-
-
-Mybatis Generator Plugins: http://www.mybatis.org/generator/reference/pluggingIn.html
+    
+Reference [Mybatis Generator Plugins](http://www.mybatis.org/generator/reference/pluggingIn.html)
