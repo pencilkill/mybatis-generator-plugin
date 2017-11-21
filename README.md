@@ -68,6 +68,7 @@ Mybatis generator config :
 ExampleCriteriaWhereClause
 -
 Mybatis generator config :
+
     <plugin type="com.nd.mybatis.generator.plugin.ExampleCriteriaWhereClausePlugin" />
 
 
