@@ -78,11 +78,11 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
             isNotNullElement.addElement(foreachColumnElement(introspectedColumn));
         }
 
-        answer.addElement(wherePramaryKeyColumnsElement());
+        answer.addElement(wherePramaryKeyElement());
         
         answer.addElement(new TextElement(" in "));
         
-        answer.addElement(foreachWherePramaryKeyElement());
+        answer.addElement(foreachWherePramaryKeyCriteriaElement());
 
         if (context.getPlugins().sqlMapUpdateByPrimaryKeySelectiveElementGenerated(answer, introspectedTable))
         {
@@ -99,12 +99,12 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
         foreachElement.addAttribute(new Attribute("open", MyBatis3FormattingUtilities.getEscapedColumnName(introspectedColumn) + " = case "));
         foreachElement.addAttribute(new Attribute("close", " else " + MyBatis3FormattingUtilities.getEscapedColumnName(introspectedColumn) + " end, "));
 
-        foreachElement.addElement(caseWhenElement(introspectedColumn));
+        foreachElement.addElement(caseWhenColumnElement(introspectedColumn, "item."));
 
         return foreachElement;
     }
 
-    private Element caseWhenElement(IntrospectedColumn introspectedColumn)
+    private Element caseWhenColumnElement(IntrospectedColumn introspectedColumn, String parameterClausePrefix)
     {
         StringBuilder sb = new StringBuilder("when ");
         
@@ -136,12 +136,12 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
         }
 
         sb.append(" then ");
-        sb.append(MyBatis3FormattingUtilities.getParameterClause(introspectedColumn, "item."));
+        sb.append(MyBatis3FormattingUtilities.getParameterClause(introspectedColumn, parameterClausePrefix));
 
         return new TextElement(sb.toString());
     }
     
-    private Element wherePramaryKeyColumnsElement()
+    private Element wherePramaryKeyElement()
     {
         StringBuilder sb = new StringBuilder("where ");
         
@@ -174,7 +174,7 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
     }
     
 
-    private Element foreachWherePramaryKeyElement()
+    private Element foreachWherePramaryKeyCriteriaElement()
     {
         XmlElement foreachElement = new XmlElement("foreach");
         foreachElement.addAttribute(new Attribute("collection", "records"));
@@ -183,12 +183,12 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
         foreachElement.addAttribute(new Attribute("open", "("));
         foreachElement.addAttribute(new Attribute("close", ")"));
 
-        foreachElement.addElement(wherePramaryKeyCriteriaElement());
+        foreachElement.addElement(wherePramaryKeyCriteriaElement("item."));
 
         return foreachElement;
     }
     
-    private Element wherePramaryKeyCriteriaElement()
+    private Element wherePramaryKeyCriteriaElement(String parameterClausePrefix)
     {
         StringBuilder sb = new StringBuilder("");
         
@@ -209,7 +209,7 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
                 and = true;
             }
 
-            sb.append(MyBatis3FormattingUtilities.getParameterClause(introspectedKeyColumn, "item."));
+            sb.append(MyBatis3FormattingUtilities.getParameterClause(introspectedKeyColumn, parameterClausePrefix));
         }
 
         if(isCompositePrimaryKey)
