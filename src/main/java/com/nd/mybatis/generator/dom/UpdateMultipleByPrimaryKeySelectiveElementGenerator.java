@@ -176,6 +176,7 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
         foreachElement.addAttribute(new Attribute("index", "index"));
         foreachElement.addAttribute(new Attribute("open", "("));
         foreachElement.addAttribute(new Attribute("close", ")"));
+        foreachElement.addAttribute(new Attribute("separator", ", "));
 
         foreachElement.addElement(wherePramaryKeyCriteriaElement("item."));
 
