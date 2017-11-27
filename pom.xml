@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.nd.component.java</groupId>
     <artifactId>mybatis-generator-plugin</artifactId>
-    <version>0.1.2${project.version.postfix}</version>
+    <version>0.1.3${project.version.postfix}</version>
 
     <name>mybatis-generator-plugin</name>
     <url>http://maven.apache.org</url>
