@@ -5,8 +5,10 @@
 package com.nd.mybatis.generator.plugin;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.mybatis.generator.api.GeneratedJavaFile;
 import org.mybatis.generator.api.IntrospectedTable;
@@ -150,11 +152,17 @@ public class GenericPlugin extends PluginAdapter
         mapper.setVisibility(JavaVisibility.PUBLIC);
         mapper.addSuperInterface(qualifiedRootMapperType);
         
+        Set<String> declaredMethods = new HashSet<String>();
+        for (java.lang.reflect.Method method : GenericMapper.class.getDeclaredMethods())
+        {
+            declaredMethods.add(method.getName());
+        }
+        
         for (Iterator<Method> iterator = mapper.getMethods().iterator(); iterator.hasNext();)
         {
             Method method = iterator.next();
             
-            if(!method.getName().contains("PrimaryKey"))
+            if(declaredMethods.contains(method.getName()))
             {
                 iterator.remove();
             }
