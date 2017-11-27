@@ -65,17 +65,7 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
 
         for (IntrospectedColumn introspectedColumn : introspectedTable.getNonPrimaryKeyColumns())
         {
-            XmlElement isNotNullElement = new XmlElement("if");
-            
-            sb.setLength(0);
-            sb.append(introspectedColumn.getJavaProperty("record."));
-            sb.append(" != null");
-            
-            isNotNullElement.addAttribute(new Attribute("test", sb.toString()));
-            
-            dynamicElement.addElement(isNotNullElement);
-
-            isNotNullElement.addElement(foreachColumnElement(introspectedColumn));
+            dynamicElement.addElement(foreachColumnElement(introspectedColumn));
         }
 
         answer.addElement(wherePramaryKeyElement());
@@ -98,8 +88,12 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
         foreachElement.addAttribute(new Attribute("index", "index"));
         foreachElement.addAttribute(new Attribute("open", MyBatis3FormattingUtilities.getEscapedColumnName(introspectedColumn) + " = case "));
         foreachElement.addAttribute(new Attribute("close", " else " + MyBatis3FormattingUtilities.getEscapedColumnName(introspectedColumn) + " end, "));
-
-        foreachElement.addElement(caseWhenColumnElement(introspectedColumn, "item."));
+        
+        XmlElement isNotNullElement = new XmlElement("if");
+        isNotNullElement.addAttribute(new Attribute("test", introspectedColumn.getJavaProperty("item.") + " != null"));
+        isNotNullElement.addElement(caseWhenColumnElement(introspectedColumn, "item."));
+        
+        foreachElement.addElement(isNotNullElement);
 
         return foreachElement;
     }
