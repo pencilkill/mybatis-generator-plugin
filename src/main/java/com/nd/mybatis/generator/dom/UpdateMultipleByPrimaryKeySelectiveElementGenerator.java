@@ -12,6 +12,8 @@ import org.mybatis.generator.api.dom.xml.XmlElement;
 import org.mybatis.generator.codegen.mybatis3.MyBatis3FormattingUtilities;
 import org.mybatis.generator.codegen.mybatis3.xmlmapper.elements.AbstractXmlElementGenerator;
 
+import com.nd.mybatis.generator.plugin.UpdateMultipleByPrimaryKeySelectivePlugin;
+
 /**
  * @author SongDeQiang <mail.song.de.qiang@gmail.com>
  *
@@ -35,7 +37,7 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
     {
         XmlElement answer = new XmlElement("update");
 
-        answer.addAttribute(new Attribute("id", introspectedTable.getUpdateByPrimaryKeySelectiveStatementId()));
+        answer.addAttribute(new Attribute("id", UpdateMultipleByPrimaryKeySelectivePlugin.ATTR_UPDATE_MULTIPLE_BY_PRIMARY_KEY_SELECTIVE_STATEMENT_ID));
 
         String parameterType;
 
