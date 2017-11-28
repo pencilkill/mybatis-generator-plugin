@@ -129,7 +129,7 @@ public class UpdateMultipleByPrimaryKeySelectiveElementGenerator extends Abstrac
 
             sb.append(MyBatis3FormattingUtilities.getEscapedColumnName(introspectedKeyColumn));
             sb.append(" = ");
-            sb.append(MyBatis3FormattingUtilities.getParameterClause(introspectedKeyColumn));
+            sb.append(MyBatis3FormattingUtilities.getParameterClause(introspectedKeyColumn, parameterClausePrefix));
         }
         
         if(isCompositePrimaryKey)
