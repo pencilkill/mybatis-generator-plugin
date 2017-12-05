@@ -13,8 +13,12 @@ import java.util.Set;
 import org.mybatis.generator.api.GeneratedJavaFile;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.PluginAdapter;
+import org.mybatis.generator.api.dom.OutputUtilities;
+import org.mybatis.generator.api.dom.java.Field;
 import org.mybatis.generator.api.dom.java.FullyQualifiedJavaType;
+import org.mybatis.generator.api.dom.java.InitializationBlock;
 import org.mybatis.generator.api.dom.java.InnerClass;
+import org.mybatis.generator.api.dom.java.InnerEnum;
 import org.mybatis.generator.api.dom.java.Interface;
 import org.mybatis.generator.api.dom.java.JavaVisibility;
 import org.mybatis.generator.api.dom.java.Method;
@@ -193,33 +197,28 @@ public class GenericPlugin extends PluginAdapter
         
         //
         topLevelClass.getFields().clear();
-
+        
         //
-        for (Iterator<Method> iterator = topLevelClass.getMethods().iterator(); iterator.hasNext();)
-        {
-            Method method = iterator.next();
-
-            if (method.getName().equals("createCriteriaInternal"))
-            {
-                method.addAnnotation("@Override");
-
-                continue;
-            }
-            //
-            iterator.remove();
-        }
-
+        Method method = new Method();
+        method.addAnnotation("@Override");
+        method.setVisibility(JavaVisibility.PROTECTED);
+        method.setName("createCriteriaInternal");
+        method.setReturnType(qualifiedCriteriaType);
+        method.addBodyLine("return new " + qualifiedCriteriaType.getShortName() + "();");
+        
         //
-        for (Iterator<InnerClass> iterator = topLevelClass.getInnerClasses().iterator(); iterator.hasNext();)
+        topLevelClass.getMethods().clear();
+        
+        topLevelClass.addMethod(method);
+        
+        //
+        InnerClass rewriteGeneratedCriteriaClass = rewriteGeneratedCriteriaClass(topLevelClass);
+        
+        if(rewriteGeneratedCriteriaClass != null)
         {
-            InnerClass innerClass = iterator.next();
-
-            if (innerClass.getType().getShortName().equals("Criterion"))
-            {
-                iterator.remove();
-
-                continue;
-            }
+            topLevelClass.getInnerClasses().clear();
+        
+            topLevelClass.addInnerClass(rewriteGeneratedCriteriaClass);
         }
 
         return true;
@@ -230,7 +229,7 @@ public class GenericPlugin extends PluginAdapter
     {
         this.qualifiedRecordType = new FullyQualifiedJavaType(introspectedTable.getBaseRecordType());
         
-        this.qualifiedCriteriaType = new FullyQualifiedJavaType(introspectedTable.getExampleType() + ".Criteria");
+        this.qualifiedCriteriaType = new FullyQualifiedJavaType(introspectedTable.getExampleType() + "." + FullyQualifiedJavaType.getCriteriaInstance().getShortName());
         
         this.qualifiedExampleType = new FullyQualifiedJavaType(introspectedTable.getExampleType());
         
@@ -243,7 +242,7 @@ public class GenericPlugin extends PluginAdapter
     }
 
     @Override
-    public List<GeneratedJavaFile> contextGenerateAdditionalJavaFiles()
+    public List<GeneratedJavaFile> contextGenerateAdditionalJavaFiles(IntrospectedTable introspectedTable)
     {
         List<GeneratedJavaFile> generatedJavaFiles = new ArrayList<GeneratedJavaFile>();
 
@@ -252,5 +251,478 @@ public class GenericPlugin extends PluginAdapter
         generatedJavaFiles.add(generateServiceImplJavaFile());
 
         return generatedJavaFiles;
+    }
+    
+    private InnerClass rewriteGeneratedCriteriaClass(TopLevelClass topLevelClass)
+    {
+        for (Iterator<InnerClass> classIterator = topLevelClass.getInnerClasses().iterator(); classIterator.hasNext();)
+        {
+            InnerClass innerClass = classIterator.next();
+            
+            if (FullyQualifiedJavaType.getGeneratedCriteriaInstance().getShortName().equals(innerClass.getType().getShortName()))
+            {
+                innerClass.setAbstract(false);
+                innerClass.setVisibility(JavaVisibility.PUBLIC);
+                
+                for (Iterator<Method> methodIterator = innerClass.getMethods().iterator(); methodIterator.hasNext();)
+                {
+                    Method method = methodIterator.next();
+                    
+                    if(method.isConstructor())
+                    {
+                        method.setName(qualifiedCriteriaType.getShortName());
+                    }
+                }
+                
+                return new NamingInnerClass(innerClass, new FullyQualifiedJavaType(qualifiedCriteriaType.getShortName()));
+            }
+        }
+        
+        return null;
+    }
+    
+    public static class NamingInnerClass extends InnerClass
+    {
+        private InnerClass original;
+
+        public NamingInnerClass(InnerClass original, FullyQualifiedJavaType type)
+        {
+            super(type);
+            
+            this.original = original;
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.InnerClass#getType()
+         */
+        @Override
+        public FullyQualifiedJavaType getType()
+        {
+            return super.getType();
+        }
+
+        @Override
+        public String getFormattedContent(int indentLevel) {
+            StringBuilder sb = new StringBuilder();
+
+            addFormattedJavadoc(sb, indentLevel);
+            addFormattedAnnotations(sb, indentLevel);
+
+            OutputUtilities.javaIndent(sb, indentLevel);
+            sb.append(getVisibility().getValue());
+
+            if (isAbstract()) {
+                sb.append("abstract "); //$NON-NLS-1$
+            }
+
+            if (isStatic()) {
+                sb.append("static "); //$NON-NLS-1$
+            }
+
+            if (isFinal()) {
+                sb.append("final "); //$NON-NLS-1$
+            }
+
+            sb.append("class "); //$NON-NLS-1$
+            sb.append(getType().getShortName());
+
+            if (getSuperClass() != null) {
+                sb.append(" extends "); //$NON-NLS-1$
+                sb.append(getSuperClass().getShortName());
+            }
+
+            if (getSuperInterfaceTypes().size() > 0) {
+                sb.append(" implements "); //$NON-NLS-1$
+
+                boolean comma = false;
+                for (FullyQualifiedJavaType fqjt : getSuperInterfaceTypes()) {
+                    if (comma) {
+                        sb.append(", "); //$NON-NLS-1$
+                    } else {
+                        comma = true;
+                    }
+
+                    sb.append(fqjt.getShortName());
+                }
+            }
+
+            sb.append(" {"); //$NON-NLS-1$
+            indentLevel++;
+            
+            Iterator<Field> fldIter = getFields().iterator();
+            while (fldIter.hasNext()) {
+                OutputUtilities.newLine(sb);
+                Field field = fldIter.next();
+                sb.append(field.getFormattedContent(indentLevel));
+                if (fldIter.hasNext()) {
+                    OutputUtilities.newLine(sb);
+                }
+            }
+
+            if (getInitializationBlocks().size() > 0) {
+                OutputUtilities.newLine(sb);
+            }
+
+            Iterator<InitializationBlock> blkIter = getInitializationBlocks().iterator();
+            while (blkIter.hasNext()) {
+                OutputUtilities.newLine(sb);
+                InitializationBlock initializationBlock = blkIter.next();
+                sb.append(initializationBlock.getFormattedContent(indentLevel));
+                if (blkIter.hasNext()) {
+                    OutputUtilities.newLine(sb);
+                }
+            }
+
+            if (getMethods().size() > 0) {
+                OutputUtilities.newLine(sb);
+            }
+
+            Iterator<Method> mtdIter = getMethods().iterator();
+            while (mtdIter.hasNext()) {
+                OutputUtilities.newLine(sb);
+                Method method = mtdIter.next();
+                sb.append(method.getFormattedContent(indentLevel, false));
+                if (mtdIter.hasNext()) {
+                    OutputUtilities.newLine(sb);
+                }
+            }
+
+            if (getInnerClasses().size() > 0) {
+                OutputUtilities.newLine(sb);
+            }
+            Iterator<InnerClass> icIter = getInnerClasses().iterator();
+            while (icIter.hasNext()) {
+                OutputUtilities.newLine(sb);
+                InnerClass innerClass = icIter.next();
+                sb.append(innerClass.getFormattedContent(indentLevel));
+                if (icIter.hasNext()) {
+                    OutputUtilities.newLine(sb);
+                }
+            }
+
+            if (getInnerEnums().size() > 0) {
+                OutputUtilities.newLine(sb);
+            }
+
+            Iterator<InnerEnum> ieIter = getInnerEnums().iterator();
+            while (ieIter.hasNext()) {
+                OutputUtilities.newLine(sb);
+                InnerEnum innerEnum = ieIter.next();
+                sb.append(innerEnum.getFormattedContent(indentLevel));
+                if (ieIter.hasNext()) {
+                    OutputUtilities.newLine(sb);
+                }
+            }
+
+            indentLevel--;
+            OutputUtilities.newLine(sb);
+            OutputUtilities.javaIndent(sb, indentLevel);
+            sb.append('}');
+
+            return sb.toString();
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.JavaElement#getJavaDocLines()
+         */
+        @Override
+        public List<String> getJavaDocLines()
+        {
+            return original.getJavaDocLines();
+        }
+
+        /**
+         * @param javaDocLine
+         * @see org.mybatis.generator.api.dom.java.JavaElement#addJavaDocLine(java.lang.String)
+         */
+        @Override
+        public void addJavaDocLine(String javaDocLine)
+        {
+            original.addJavaDocLine(javaDocLine);
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.JavaElement#getAnnotations()
+         */
+        @Override
+        public List<String> getAnnotations()
+        {
+            return original.getAnnotations();
+        }
+
+        /**
+         * @param annotation
+         * @see org.mybatis.generator.api.dom.java.JavaElement#addAnnotation(java.lang.String)
+         */
+        @Override
+        public void addAnnotation(String annotation)
+        {
+            original.addAnnotation(annotation);
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.InnerClass#getFields()
+         */
+        @Override
+        public List<Field> getFields()
+        {
+            return original.getFields();
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.JavaElement#getVisibility()
+         */
+        @Override
+        public JavaVisibility getVisibility()
+        {
+            return original.getVisibility();
+        }
+
+        /**
+         * @param field
+         * @see org.mybatis.generator.api.dom.java.InnerClass#addField(org.mybatis.generator.api.dom.java.Field)
+         */
+        @Override
+        public void addField(Field field)
+        {
+            original.addField(field);
+        }
+
+        /**
+         * @param visibility
+         * @see org.mybatis.generator.api.dom.java.JavaElement#setVisibility(org.mybatis.generator.api.dom.java.JavaVisibility)
+         */
+        @Override
+        public void setVisibility(JavaVisibility visibility)
+        {
+            original.setVisibility(visibility);
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.InnerClass#getSuperClass()
+         */
+        @Override
+        public FullyQualifiedJavaType getSuperClass()
+        {
+            return original.getSuperClass();
+        }
+
+        /**
+         * @param superClass
+         * @see org.mybatis.generator.api.dom.java.InnerClass#setSuperClass(org.mybatis.generator.api.dom.java.FullyQualifiedJavaType)
+         */
+        @Override
+        public void setSuperClass(FullyQualifiedJavaType superClass)
+        {
+            original.setSuperClass(superClass);
+        }
+
+        /**
+         *
+         * @see org.mybatis.generator.api.dom.java.JavaElement#addSuppressTypeWarningsAnnotation()
+         */
+        @Override
+        public void addSuppressTypeWarningsAnnotation()
+        {
+            original.addSuppressTypeWarningsAnnotation();
+        }
+
+        /**
+         * @param sb
+         * @param indentLevel
+         * @see org.mybatis.generator.api.dom.java.JavaElement#addFormattedJavadoc(java.lang.StringBuilder, int)
+         */
+        @Override
+        public void addFormattedJavadoc(StringBuilder sb, int indentLevel)
+        {
+            original.addFormattedJavadoc(sb, indentLevel);
+        }
+
+        /**
+         * @param superClassType
+         * @see org.mybatis.generator.api.dom.java.InnerClass#setSuperClass(java.lang.String)
+         */
+        @Override
+        public void setSuperClass(String superClassType)
+        {
+            original.setSuperClass(superClassType);
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.InnerClass#getInnerClasses()
+         */
+        @Override
+        public List<InnerClass> getInnerClasses()
+        {
+            return original.getInnerClasses();
+        }
+
+        /**
+         * @param sb
+         * @param indentLevel
+         * @see org.mybatis.generator.api.dom.java.JavaElement#addFormattedAnnotations(java.lang.StringBuilder, int)
+         */
+        @Override
+        public void addFormattedAnnotations(StringBuilder sb, int indentLevel)
+        {
+            original.addFormattedAnnotations(sb, indentLevel);
+        }
+
+        /**
+         * @param innerClass
+         * @see org.mybatis.generator.api.dom.java.InnerClass#addInnerClass(org.mybatis.generator.api.dom.java.InnerClass)
+         */
+        @Override
+        public void addInnerClass(InnerClass innerClass)
+        {
+            original.addInnerClass(innerClass);
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.InnerClass#getInnerEnums()
+         */
+        @Override
+        public List<InnerEnum> getInnerEnums()
+        {
+            return original.getInnerEnums();
+        }
+
+        /**
+         * @param innerEnum
+         * @see org.mybatis.generator.api.dom.java.InnerClass#addInnerEnum(org.mybatis.generator.api.dom.java.InnerEnum)
+         */
+        @Override
+        public void addInnerEnum(InnerEnum innerEnum)
+        {
+            original.addInnerEnum(innerEnum);
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.JavaElement#isFinal()
+         */
+        @Override
+        public boolean isFinal()
+        {
+            return original.isFinal();
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.InnerClass#getInitializationBlocks()
+         */
+        @Override
+        public List<InitializationBlock> getInitializationBlocks()
+        {
+            return original.getInitializationBlocks();
+        }
+
+        /**
+         * @param isFinal
+         * @see org.mybatis.generator.api.dom.java.JavaElement#setFinal(boolean)
+         */
+        @Override
+        public void setFinal(boolean isFinal)
+        {
+            original.setFinal(isFinal);
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.JavaElement#isStatic()
+         */
+        @Override
+        public boolean isStatic()
+        {
+            return original.isStatic();
+        }
+
+        /**
+         * @param initializationBlock
+         * @see org.mybatis.generator.api.dom.java.InnerClass#addInitializationBlock(org.mybatis.generator.api.dom.java.InitializationBlock)
+         */
+        @Override
+        public void addInitializationBlock(InitializationBlock initializationBlock)
+        {
+            original.addInitializationBlock(initializationBlock);
+        }
+
+        /**
+         * @param isStatic
+         * @see org.mybatis.generator.api.dom.java.JavaElement#setStatic(boolean)
+         */
+        @Override
+        public void setStatic(boolean isStatic)
+        {
+            original.setStatic(isStatic);
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.InnerClass#getSuperInterfaceTypes()
+         */
+        @Override
+        public Set<FullyQualifiedJavaType> getSuperInterfaceTypes()
+        {
+            return original.getSuperInterfaceTypes();
+        }
+
+        /**
+         * @param superInterface
+         * @see org.mybatis.generator.api.dom.java.InnerClass#addSuperInterface(org.mybatis.generator.api.dom.java.FullyQualifiedJavaType)
+         */
+        @Override
+        public void addSuperInterface(FullyQualifiedJavaType superInterface)
+        {
+            original.addSuperInterface(superInterface);
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.InnerClass#getMethods()
+         */
+        @Override
+        public List<Method> getMethods()
+        {
+            return original.getMethods();
+        }
+
+        /**
+         * @param method
+         * @see org.mybatis.generator.api.dom.java.InnerClass#addMethod(org.mybatis.generator.api.dom.java.Method)
+         */
+        @Override
+        public void addMethod(Method method)
+        {
+            original.addMethod(method);
+        }
+
+        /**
+         * @return
+         * @see org.mybatis.generator.api.dom.java.InnerClass#isAbstract()
+         */
+        @Override
+        public boolean isAbstract()
+        {
+            return original.isAbstract();
+        }
+
+        /**
+         * @param isAbtract
+         * @see org.mybatis.generator.api.dom.java.InnerClass#setAbstract(boolean)
+         */
+        @Override
+        public void setAbstract(boolean isAbtract)
+        {
+            original.setAbstract(isAbtract);
+        }
     }
 }
